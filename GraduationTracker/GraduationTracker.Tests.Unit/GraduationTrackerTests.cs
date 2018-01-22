@@ -8,81 +8,82 @@ namespace GraduationTracker.Tests.Unit
     [TestClass]
     public class GraduationTrackerTests
     {
-        [TestMethod]
-        public void TestHasCredits()
+        GraduationTracker _tracker = new GraduationTracker();
+        Diploma _diploma;
+        Student[] _students;
+        List<Tuple<int, bool, STANDING>> _graduated;
+
+        [TestInitialize()]
+        public void Initialize()
         {
-            var tracker = new GraduationTracker();
-
-            var diploma = new Diploma
-            {
-                Id = 1,
-                Credits = 4,
-                Requirements = new int[] { 100, 102, 103, 104 }
-            };
-
-            var students = new[]
-            {
-               new Student
-               {
-                   Id = 1,
-                   Courses = new Course[]
-                   {
-                        new Course{Id = 1, Name = "Math", Mark=95 },
-                        new Course{Id = 2, Name = "Science", Mark=95 },
-                        new Course{Id = 3, Name = "Literature", Mark=95 },
-                        new Course{Id = 4, Name = "Physichal Education", Mark=95 }
-                   }
-               },
-               new Student
-               {
-                   Id = 2,
-                   Courses = new Course[]
-                   {
-                        new Course{Id = 1, Name = "Math", Mark=80 },
-                        new Course{Id = 2, Name = "Science", Mark=80 },
-                        new Course{Id = 3, Name = "Literature", Mark=80 },
-                        new Course{Id = 4, Name = "Physichal Education", Mark=80 }
-                   }
-               },
-            new Student
-            {
-                Id = 3,
-                Courses = new Course[]
-                {
-                    new Course{Id = 1, Name = "Math", Mark=50 },
-                    new Course{Id = 2, Name = "Science", Mark=50 },
-                    new Course{Id = 3, Name = "Literature", Mark=50 },
-                    new Course{Id = 4, Name = "Physichal Education", Mark=50 }
-                }
-            },
-            new Student
-            {
-                Id = 4,
-                Courses = new Course[]
-                {
-                    new Course{Id = 1, Name = "Math", Mark=40 },
-                    new Course{Id = 2, Name = "Science", Mark=40 },
-                    new Course{Id = 3, Name = "Literature", Mark=40 },
-                    new Course{Id = 4, Name = "Physichal Education", Mark=40 }
-                }
-            }
-
-
-            //tracker.HasGraduated()
-        };
-            
-            var graduated = new List<Tuple<bool, STANDING>>();
-
-            foreach(var student in students)
-            {
-                graduated.Add(tracker.HasGraduated(diploma, student));      
-            }
-
-            
-            Assert.IsFalse(graduated.Any());
-
+            _diploma = Repository.GetDiploma(1);
+            _students = Repository.GetStudents();
+            _graduated = new List<Tuple<int, bool, STANDING>>();
         }
 
+        private void CalculateGraduated()
+        {
+            foreach (var student in _students)
+            {
+                _graduated.Add(_tracker.HasGraduated(_diploma, student));
+            }
+        }
 
+        [TestMethod]
+        //public void TestHasCredits()
+        public void Graduate_Count_Test()
+        {
+            CalculateGraduated();
+
+            Assert.AreEqual(3, _graduated.Count(o => o.Item2 == true));
+        }
+
+        [TestMethod]
+        public void Failed_Count_Test()
+        {
+            CalculateGraduated();
+
+            Assert.AreEqual(2, _graduated.Count(o => o.Item2 == false));
+        }
+
+        [TestMethod]
+        public void Graduate_SumaCumLaude_Test()
+        {
+            CalculateGraduated();
+
+            Assert.AreEqual(_students[0].Id, _graduated.FirstOrDefault(o => o.Item2 == true && o.Item3 == STANDING.SumaCumLaude).Item1);
+        }
+
+        [TestMethod]
+        public void Graduate_MagnaCumLaude_Test()
+        {
+            CalculateGraduated();
+
+            Assert.AreEqual(_students[1].Id, _graduated.FirstOrDefault(o => o.Item2 == true && o.Item3 == STANDING.MagnaCumLaude).Item1);
+        }
+
+        [TestMethod]
+        public void Graduate_Average_Test()
+        {
+            CalculateGraduated();
+
+            Assert.AreEqual(_students[2].Id, _graduated.FirstOrDefault(o => o.Item2 == true && o.Item3 == STANDING.Average).Item1);
+        }
+
+        [TestMethod]
+        public void Failed_Remedial_Test()
+        {
+            CalculateGraduated();
+
+            Assert.AreEqual(_students[3].Id, _graduated.FirstOrDefault(o => o.Item2 == false && o.Item3 == STANDING.Remedial).Item1);
+        }
+
+        [TestMethod]
+        public void Failed_MagnaCumLaude_Test()
+        {
+            CalculateGraduated();
+
+            Assert.AreEqual(_students[4].Id, _graduated.FirstOrDefault(o => o.Item2 == false && o.Item3 == STANDING.MagnaCumLaude).Item1);
+        }
     }
 }
